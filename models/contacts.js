@@ -36,11 +36,7 @@ const removeContact = async (contactId) => {
       return null;
     }
     const [removedContact] = parsedContacts.splice(index, 1);
-
-    const updatedContacts = parsedContacts.filter(
-      (contact) => contact.id !== contactId
-    );
-    await fs.writeFile(contactsPath, JSON.stringify(updatedContacts, null, 1));
+    await fs.writeFile(contactsPath, JSON.stringify(parsedContacts, null, 1));
 
     return removedContact;
   } catch (error) {
