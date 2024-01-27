@@ -14,90 +14,96 @@ router.get("/", async (_, res, next) => {
 });
 
 router.get("/:contactId", async (req, res, next) => {
+  const { contactId } = req.params;
+  let selectedContact;
+
   try {
-    const { contactId } = req.params;
-    const selectedContact = await service.getContactById(contactId);
-    if (!selectedContact) {
-      res.status(404).json({ message: "Not found" });
-    } else {
-      res.status(200).json(selectedContact);
-    }
+    selectedContact = (await service.getContactById(contactId)) || null;
   } catch (error) {
-    next(error);
+    return next(error);
   }
+
+  if (!selectedContact) {
+    return res.status(404).json({ message: "Not found" });
+  }
+  res.status(200).json(selectedContact);
 });
 
 router.post("/", async (req, res, next) => {
-  try {
-    const body = req.body;
-    const result = schemas.addContactSchema.validate(body);
+  const body = req.body;
+  const result = schemas.addContactSchema.validate(body);
 
-    if (result.error) {
-      res.status(400).json({ message: result.error.details[0].message });
-    } else {
-      const newContact = await service.addContact(body);
-      res.status(201).json(newContact);
-    }
+  if (result.error) {
+    return res.status(400).json({ message: result.error.details[0].message });
+  }
+
+  try {
+    const newContact = await service.addContact(body);
+    res.status(201).json(newContact);
   } catch (error) {
     next(error);
   }
 });
 
 router.delete("/:contactId", async (req, res, next) => {
+  const { contactId } = req.params;
+  let removedContact;
+
   try {
-    const { contactId } = req.params;
-    const removedContact = await service.removeContact(contactId);
-    if (!removedContact) {
-      res.status(404).json({ message: "Not found" });
-    } else {
-      res.status(200).json({ message: "Contact deleted" });
-    }
+    removedContact = await service.removeContact(contactId);
   } catch (error) {
-    next(error);
+    return next(error);
   }
+
+  if (!removedContact) {
+    return res.status(404).json({ message: "Not found" });
+  }
+  res.status(200).json({ message: "Contact deleted" });
 });
 
 router.put("/:contactId", async (req, res, next) => {
-  try {
-    const body = req.body;
-    const result = schemas.addContactSchema.validate(body);
+  const body = req.body;
+  const result = schemas.addContactSchema.validate(body);
 
-    if (result.error) {
-      res.status(400).json({ message: result.error.details[0].message });
-    } else {
-      const { contactId } = req.params;
-      const updatedContact = await service.updateContact(contactId, body);
-      if (!updatedContact) {
-        res.status(404).json({ message: "Not found" });
-      } else {
-        res.status(200).json(updatedContact);
-      }
-    }
-  } catch (error) {
-    next(error);
+  if (result.error) {
+    return res.status(400).json({ message: result.error.details[0].message });
   }
+
+  const { contactId } = req.params;
+  let updatedContact;
+
+  try {
+    updatedContact = (await service.updateContact(contactId, body)) || null;
+  } catch (error) {
+    return next(error);
+  }
+  if (!updatedContact) {
+    return res.status(404).json({ message: "Not found" });
+  }
+  res.status(200).json(updatedContact);
 });
 
 router.patch("/:contactId/favorite", async (req, res, next) => {
-  try {
-    const body = req.body;
-    const result = schemas.updateFavoriteSchema.validate(body);
+  const body = req.body;
+  const result = schemas.updateFavoriteSchema.validate(body);
 
-    if (result.error) {
-      res.status(400).json({ message: result.error.details[0].message });
-    } else {
-      const { contactId } = req.params;
-      const updatedContact =
-        (await service.updateStatusContact(contactId, body)) || null;
-      if (!updatedContact) {
-        res.status(404).json({ message: "Not found" });
-      } else {
-        res.status(200).json(updatedContact);
-      }
-    }
-  } catch (error) {
-    next(error);
+  if (result.error) {
+    return res.status(400).json({ message: result.error.details[0].message });
   }
+
+  const { contactId } = req.params;
+  let updatedContact;
+
+  try {
+    updatedContact =
+      (await service.updateStatusContact(contactId, body)) || null;
+  } catch (error) {
+    return next(error);
+  }
+  if (!updatedContact) {
+    return res.status(404).json({ message: "Not found" });
+  }
+  res.status(200).json(updatedContact);
 });
 
 module.exports = router;
