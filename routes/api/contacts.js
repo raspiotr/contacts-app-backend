@@ -1,24 +1,28 @@
 const express = require("express");
 const schemas = require("../../schemas/contacts");
 const service = require("../../services/contactsService");
+const authorize = require("../../middlewares/authorize");
 
 const router = express.Router();
 
-router.get("/", async (_, res, next) => {
+router.get("/", authorize, async (req, res, next) => {
+  const { _id: owner } = req.user;
   try {
-    const contactsList = await service.listContacts();
+    const contactsList = await service.listContacts(owner);
     res.status(200).json(contactsList);
   } catch (error) {
     next(error);
   }
 });
 
-router.get("/:contactId", async (req, res, next) => {
+router.get("/:contactId", authorize, async (req, res, next) => {
   const { contactId } = req.params;
+  const userId = req.user._id;
+
   let selectedContact;
 
   try {
-    selectedContact = (await service.getContactById(contactId)) || null;
+    selectedContact = (await service.getContactById(contactId, userId)) || null;
   } catch (error) {
     return next(error);
   }
@@ -29,8 +33,9 @@ router.get("/:contactId", async (req, res, next) => {
   res.status(200).json(selectedContact);
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", authorize, async (req, res, next) => {
   const body = req.body;
+  const { _id: owner } = req.user;
   const result = schemas.addContactSchema.validate(body);
 
   if (result.error) {
@@ -38,19 +43,20 @@ router.post("/", async (req, res, next) => {
   }
 
   try {
-    const newContact = await service.addContact(body);
+    const newContact = await service.addContact(body, owner);
     res.status(201).json(newContact);
   } catch (error) {
     next(error);
   }
 });
 
-router.delete("/:contactId", async (req, res, next) => {
+router.delete("/:contactId", authorize, async (req, res, next) => {
   const { contactId } = req.params;
+  const userId = req.user._id;
   let removedContact;
 
   try {
-    removedContact = await service.removeContact(contactId);
+    removedContact = await service.removeContact(contactId, userId);
   } catch (error) {
     return next(error);
   }
@@ -61,8 +67,9 @@ router.delete("/:contactId", async (req, res, next) => {
   res.status(200).json({ message: "Contact deleted" });
 });
 
-router.put("/:contactId", async (req, res, next) => {
+router.put("/:contactId", authorize, async (req, res, next) => {
   const body = req.body;
+  const userId = req.user._id;
   const result = schemas.addContactSchema.validate(body);
 
   if (result.error) {
@@ -73,7 +80,7 @@ router.put("/:contactId", async (req, res, next) => {
   let updatedContact;
 
   try {
-    updatedContact = (await service.updateContact(contactId, body)) || null;
+    updatedContact = (await service.updateContact(contactId, body, userId)) || null;
   } catch (error) {
     return next(error);
   }
@@ -83,8 +90,9 @@ router.put("/:contactId", async (req, res, next) => {
   res.status(200).json(updatedContact);
 });
 
-router.patch("/:contactId/favorite", async (req, res, next) => {
+router.patch("/:contactId/favorite", authorize, async (req, res, next) => {
   const body = req.body;
+  const userId = req.user._id;
   const result = schemas.updateFavoriteSchema.validate(body);
 
   if (result.error) {
@@ -96,7 +104,7 @@ router.patch("/:contactId/favorite", async (req, res, next) => {
 
   try {
     updatedContact =
-      (await service.updateStatusContact(contactId, body)) || null;
+      (await service.updateStatusContact(contactId, body, userId)) || null;
   } catch (error) {
     return next(error);
   }
