@@ -1,10 +1,15 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const fs = require("fs").promises;
+const path = require("path");
+const gravatar = require("gravatar");
+const jimp = require("jimp");
 
 require("dotenv").config();
 
 const { SECRET_KEY } = process.env;
 const { User } = require("../schemas/users");
+const avatarDirectory = path.join(__dirname, "../", "public", "avatars");
 
 const signup = async (req, res, next) => {
   const { email, password } = req.body;
@@ -24,8 +29,17 @@ const signup = async (req, res, next) => {
   }
 
   try {
+    const avatarURL = gravatar.url(email, {
+      protocol: "https",
+      s: "250",
+      default: "retro",
+    });
     const hashPassword = await bcrypt.hash(password, 10);
-    const newUser = await User.create({ ...req.body, password: hashPassword });
+    const newUser = await User.create({
+      ...req.body,
+      password: hashPassword,
+      avatarURL,
+    });
 
     res.status(201).json({
       user: {
@@ -115,4 +129,41 @@ const current = async (req, res) => {
   });
 };
 
-module.exports = { signup, login, logout, current };
+const updateUserAvatar = async (req, res, next) => {
+  const { path: temporaryName } = req.file;
+
+  try {
+    const image = await jimp.read(temporaryName);
+    await image
+      .autocrop()
+      .cover(
+        250,
+        250,
+        jimp.HORIZONTAL_ALIGN_CENTER | jimp.VERTICAL_ALIGN_MIDDLE
+      )
+      .writeAsync(temporaryName);
+  } catch (error) {
+    return next(error);
+  }
+
+  const { _id } = req.user;
+  const newFilename = `${_id}_${Date.now()}.jpg`;
+  const resultUpload = path.join(avatarDirectory, newFilename);
+
+  try {
+    await fs.rename(temporaryName, resultUpload);
+  } catch (error) {
+    return next(error);
+  }
+
+  const avatarURL = path.join("avatars", newFilename);
+
+  try {
+    await User.findByIdAndUpdate(_id, { avatarURL });
+    return res.status(200).json({ avatarURL });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+module.exports = { signup, login, logout, current, updateUserAvatar };
