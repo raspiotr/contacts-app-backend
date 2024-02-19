@@ -23,4 +23,12 @@ router.patch(
   services.updateUserAvatar
 );
 
+router.get("/verify/:verificationToken", services.verifyEmailByToken);
+
+router.post(
+  "/verify",
+  validateBody(schemas.emailVerifySchema),
+  services.resendVerificationEmail
+);
+
 module.exports = router;
