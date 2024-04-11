@@ -1,31 +1,21 @@
-## GoIT Node.js Course Template Homework
+### Contacts App (backend: Node.js, Express, MongoDB, JWT, Nodemailer)
 
-Виконайте форк цього репозиторію для виконання домашніх завдань (2-6)
-Форк створить репозиторій на вашому http://github.com
+**Contact Management App with User Creation**
 
-Додайте ментора до колаборації
+---
 
-Для кожної домашньої роботи створюйте свою гілку.
+### Supported Routes:
 
-- hw02
-- hw03
-- hw04
-- hw05
-- hw06
-
-Кожна нова гілка для др повинна робитися з master
-
-Після того, як ви закінчили виконувати домашнє завдання у своїй гілці, необхідно зробити пулл-реквест (PR). Потім додати ментора для рев'ю коду. Тільки після того, як ментор заапрувить PR, ви можете виконати мердж гілки з домашнім завданням у майстер.
-
-Уважно читайте коментарі ментора. Виправте зауваження та зробіть коміт у гілці з домашнім завданням. Зміни підтягнуться у PR автоматично після того, як ви відправите коміт з виправленнями на github
-Після виправлення знову додайте ментора на рев'ю коду.
-
-- При здачі домашньої роботи є посилання на PR
-- JS-код чистий та зрозумілий, для форматування використовується Prettier
-
-### Команди:
-
-- `npm start` &mdash; старт сервера в режимі production
-- `npm run start:dev` &mdash; старт сервера в режимі розробки (development)
-- `npm run lint` &mdash; запустити виконання перевірки коду з eslint, необхідно виконувати перед кожним PR та виправляти всі помилки лінтера
-- `npm lint:fix` &mdash; та ж перевірка лінтера, але з автоматичними виправленнями простих помилок
+- **GET /api/contacts** - Returns an array of all contacts in JSON format.
+- **GET /api/contacts/:id** - If such an 'id' exists, returns a contact object in JSON format.
+- **POST /api/contacts** - Receives a body in the format {name, email, phone}; returns an object with the added 'id'.
+- **DELETE /api/contacts/:id** - If such an 'id' exists, removes the contact from the database.
+- **PUT /api/contacts/:id** - Receives a JSON body with updates to any of the fields: 'name', 'email', and 'phone'.
+- **PATCH /api/contacts/:id/favorite** - Receives a JSON body with an update to the 'favorite' field.
+- **POST /users/signup** - Receives a body in the format {email, password}; creates a user in the database.
+- **POST /users/login** - Receives a body in the format {email, password}; returns a 'token'.
+- **GET /users/logout** - Checks the 'token' in the middleware; removes the token from the current user in the database.
+- **GET /users/current** - Checks the 'token' in the middleware; returns the user data.
+- **PATCH /users/avatars** - Allows updating the user's avatar.
+- **GET /users/verify/:verificationToken** - Allows verifying the user's email address.
+- **POST /users/verify** - Receives a body in the format { email }; resends an email with the 'verificationToken' to the specified email.
